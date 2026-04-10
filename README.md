@@ -39,3 +39,5 @@ Detailed changes for each release are documented in the [release notes](https://
 ## License
 
 [MIT](LICENSE)
+
+- iPadOS 26 Swift Playgrounds Whisper guide: `docs/ios/ipados26-swift-playgrounds-whisper-app.md`
