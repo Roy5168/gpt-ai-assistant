@@ -1,5 +1,200 @@
 # Changelog
 
+## 4.9.1 (2024-07-10)
+
+### Bug Fixes
+
+- Update `talk` command
+
+## 4.9.0 (2024-07-10)
+
+### New Features
+
+- Support `gpt-4o` model
+
+## 4.8.4 (2024-07-06)
+
+### Bug Fixes
+
+- Update status page
+
+## 4.8.3 (2024-02-03)
+
+### Bug Fixes
+
+- Fix `maxDuration` for `vercel.json`
+
+## 4.8.2 (2024-02-03)
+
+### Bug Fixes
+
+- Use `gl` param for SerpApi
+- Remove `SERPAPI_LANG` environment variable
+
+## 4.8.1 (2024-02-03)
+
+### Bug Fixes
+
+- Add `maxDuration` for `vercel.json`
+
+## 4.8.0 (2023-12-07)
+
+### New Features
+
+- Support fine-tuned models
+
+## 4.7.6 (2023-11-18)
+
+### Bug Fixes
+
+- Change default max groups to 1000
+- Change default max users to 1000
+- Change default max prompt messages to 4
+- Change default max prompt tokens to 160
+- Change default completion temperature to 1
+- Change default completion max tokens to 64
+
+## 4.7.5 (2023-10-01)
+
+### Bug Fixes
+
+- Update status page
+
+## 4.7.4 (2023-08-26)
+
+### Bug Fixes
+
+- Update status page
+
+## 4.7.3 (2023-08-25)
+
+### Bug Fixes
+
+- Fix commands
+
+## 4.7.2 (2023-08-05)
+
+### Bug Fixes
+
+- Fix `translate` command
+
+## 4.7.1 (2023-08-01)
+
+### Bug Fixes
+
+- Optimize `search` command
+- Add aliases for commands
+
+## 4.7.0 (2023-06-08)
+
+### New Features
+
+- Add `OPENAI_COMPLETION_STOP_SEQUENCES` environment variable
+
+## 4.6.0 (2023-05-03)
+
+### New Features
+
+- Support `gpt-4` model
+
+## 4.5.0 (2023-04-27)
+
+### New Features
+
+- Support `zh_CN` locale
+
+## 4.4.4 (2023-03-21)
+
+### Bug Fixes
+
+- Fix default value of `APP_MAX_GROUPS` environment variable
+- Fix default value of `APP_MAX_USERS` environment variable
+
+## 4.4.3 (2023-03-11)
+
+### Bug Fixes
+
+- Fix wording of `doc` and `report` commands
+
+## 4.4.2 (2023-03-11)
+
+### Bug Fixes
+
+- Add `ERROR_MESSAGE_DISABLED` environment variable
+- Deprecate `ERROR_TIMEOUT_DISABLED` environment variable
+
+## 4.4.1 (2023-03-10)
+
+### Bug Fixes
+
+- Add default max prompt tokens for chat completion api
+
+## 4.4.0 (2023-03-08)
+
+### New Features
+
+- Support snapshots of `gpt-3.5-turbo` model
+
+## 4.3.0 (2023-03-08)
+
+### New Features
+
+- Add `VERCEL_TEAM_ID` environment variable
+
+## 4.2.2 (2023-03-08)
+
+### Bug Fixes
+
+- Optimize error handling
+
+## 4.2.1 (2023-03-07)
+
+### Bug Fixes
+
+- Fix `add-mark` util
+
+## 4.2.0 (2023-03-05)
+
+### New Features
+
+- Add `APP_INIT_PROMPT` environment variable
+
+## 4.1.3 (2023-03-05)
+
+### Bug Fixes
+
+- Fix `add-mark` util
+
+## 4.1.2 (2023-03-05)
+
+### Bug Fixes
+
+- Update `add-mark` util
+
+## 4.1.1 (2023-03-05)
+
+### Bug Fixes
+
+- End text with dot
+
+## 4.1.0 (2023-03-05)
+
+- Support `whisper-1` model
+- Add `opencc` text converter
+- Store display name and group name to storage
+
+## 4.0.4 (2023-03-03)
+
+### Bug Fixes
+
+- Optimize `search` command
+
+## 4.0.3 (2023-03-03)
+
+### Bug Fixes
+
+- Optimize `search` and `draw` commands
+
 ## 4.0.2 (2023-03-02)
 
 ### Bug Fixes
@@ -349,8 +544,8 @@
 
 ### Bug Fixes
 
-- Update default max tokens to 160
-- Update default max lines to 16
+- Change default max completion tokens to 160
+- Change default max prompt messages to 16
 
 ## 1.4.6 (2022-12-20)
 

@@ -13,18 +13,14 @@ app.use(express.json({
   },
 }));
 
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
   if (config.APP_URL) {
     res.redirect(config.APP_URL);
     return;
   }
-  res.sendStatus(200);
-});
-
-app.get('/info', async (req, res) => {
   const currentVersion = getVersion();
   const latestVersion = await fetchVersion();
-  res.status(200).send({ currentVersion, latestVersion });
+  res.status(200).send({ status: 'OK', currentVersion, latestVersion });
 });
 
 app.post(config.APP_WEBHOOK_PATH, validateLineSignature, async (req, res) => {
@@ -34,8 +30,6 @@ app.post(config.APP_WEBHOOK_PATH, validateLineSignature, async (req, res) => {
     res.sendStatus(200);
   } catch (err) {
     console.error(err.message);
-    if (err.config?.baseURL) console.error(`${err.config.method.toUpperCase()} ${err.config.baseURL}${err.config.url}`);
-    if (err.response?.data) console.error(err.response.data);
     res.sendStatus(500);
   }
   if (config.APP_DEBUG) printPrompts();
