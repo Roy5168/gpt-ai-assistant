@@ -6,7 +6,7 @@
 - 1 個風險管理代理人（risk_manager）
 - 1 個投資組合經理代理人（portfolio_manager）
 
-目前版本使用 `DummyLLM` 回傳 deterministic placeholder 結果，目的是讓你先把 API、資料流與輸出格式串起來，再替換成 OpenAI API。
+目前版本已直接串接 OpenAI SDK（也可透過 `OPENAI_BASE_URL` 連 OpenAI 相容 API），回應要求 JSON 格式，方便在多代理人流程中做結構化彙整。
 
 ---
 
@@ -39,6 +39,15 @@ demo/investment_advisor_mvp/
 python -m venv .venv
 source .venv/bin/activate
 pip install -r demo/investment_advisor_mvp/requirements.txt
+
+# 必填：你的 OpenAI Key
+export OPENAI_API_KEY="<YOUR_KEY>"
+
+# 選填：模型與相容端點
+export OPENAI_MODEL="gpt-4.1-mini"
+# export OPENAI_BASE_URL="https://api.openai.com/v1"
+# 例如相容服務可改成你的 base URL
+
 uvicorn demo.investment_advisor_mvp.main:app --reload --port 8090
 ```
 
@@ -135,12 +144,32 @@ curl -X POST "http://127.0.0.1:8090/analyze" \
 
 ---
 
-## 7) 如何接上真實 LLM
+## 7) OpenAI（或相容）API 連接方式
 
-1. 打開 `orchestrator.py` 的 `DummyLLM.run(...)`。
-2. 改成呼叫 OpenAI（或相容）API。
-3. 讓每個 agent 輸出符合 `schemas.py` / prompt 規格。
-4. 保留 `InvestmentOrchestrator.analyze(...)` 的流程不變，先求可維護性。
+目前程式已改為直接使用 OpenAI SDK。
+
+- 必填環境變數：
+  - `OPENAI_API_KEY`
+- 選填環境變數：
+  - `OPENAI_MODEL`（預設 `gpt-4.1-mini`）
+  - `OPENAI_BASE_URL`（若使用 OpenAI 相容服務請設定）
+  - `OPENAI_TEMPERATURE`（預設 `0.2`）
+
+程式在 `InvestmentOrchestrator()` 初始化時，會讀取上述環境變數建立 client。
+
+若要客製連線，可自行建立 `OpenAIJSONLLM` 後注入：
+
+```python
+from openai import OpenAI
+from demo.investment_advisor_mvp.orchestrator import InvestmentOrchestrator, OpenAIJSONLLM
+
+llm = OpenAIJSONLLM(
+    model="gpt-4.1-mini",
+    client=OpenAI(api_key="...", base_url="..."),
+    temperature=0.2,
+)
+orchestrator = InvestmentOrchestrator(llm=llm)
+```
 
 ---
 
