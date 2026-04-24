@@ -20,6 +20,36 @@ GPT AI Assistant is an application that is implemented using the OpenAI API and 
 - <a href="https://memochou1993.github.io/gpt-ai-assistant-docs/" target="_blank">中文</a>
 - <a href="https://memochou1993.github.io/gpt-ai-assistant-docs/en" target="_blank">English</a>
 
+## Church voting demo (new)
+
+This repo now includes a simple church voting MVP (frontend + backend API) with:
+
+- one-time token based voter login
+- anonymous ballot submission
+- admin setup for elections/candidates/voters/token generation
+- start/end voting and result tally
+
+### Quick start
+
+1. Run server:
+
+```bash
+npm install
+npm run dev
+```
+
+2. Open admin UI:
+
+`http://localhost:3000/church-vote/admin`
+
+3. Open voter UI:
+
+`http://localhost:3000/church-vote`
+
+4. Optional env var (recommended):
+
+`CHURCH_VOTE_ADMIN_KEY=your-secret-key`
+
 ## Credits
 
 - [jayer95](https://github.com/jayer95) - Debugging and testing

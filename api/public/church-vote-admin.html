@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>教會投票後台</title>
+  <style>body{font-family:sans-serif;max-width:960px;margin:20px auto;padding:0 12px} section{border:1px solid #ddd;padding:12px;border-radius:8px;margin:12px 0} input,select{padding:6px;margin:4px;width:220px} button{padding:6px 10px} pre{background:#f5f5f5;padding:10px;overflow:auto}</style>
+</head>
+<body>
+  <h1>教會投票後台</h1>
+  <p>請先輸入管理金鑰（預設：church-admin-change-me，上線請改環境變數）。</p>
+  <input id="adminKey" placeholder="x-admin-key" value="church-admin-change-me" />
+
+  <section>
+    <h2>1) 建立選舉</h2>
+    <input id="title" placeholder="選舉名稱" />
+    <select id="positionType"><option value="elder">長老</option><option value="deacon">執事</option></select>
+    <input id="seats" type="number" placeholder="應選名額" value="3" />
+    <input id="startAt" placeholder="開始時間 ISO" />
+    <input id="endAt" placeholder="結束時間 ISO" />
+    <button id="createElection">建立</button>
+  </section>
+
+  <section>
+    <h2>2) 匯入會友（JSON）</h2>
+    <textarea id="votersJson" style="width:100%;height:110px">[{"memberNo":"M001","name":"王弟兄"},{"memberNo":"M002","name":"李姊妹"}]</textarea>
+    <button id="importVoters">匯入會友</button>
+  </section>
+
+  <section>
+    <h2>3) 選舉操作</h2>
+    <input id="electionId" placeholder="electionId" style="width:360px" />
+    <input id="candidateName" placeholder="候選人姓名" />
+    <button id="addCandidate">新增候選人</button>
+    <button id="startElection">開始投票</button>
+    <button id="endElection">結束投票</button>
+    <button id="genTokens">產生 QR token</button>
+    <button id="fetchResults">查看結果</button>
+  </section>
+
+  <h2>輸出</h2>
+  <pre id="output"></pre>
+
+  <script>
+    const output = document.getElementById('output');
+    const headers = () => ({ 'Content-Type': 'application/json', 'x-admin-key': document.getElementById('adminKey').value });
+    const print = (data) => output.textContent = JSON.stringify(data, null, 2);
+
+    const post = async (url, body = {}) => {
+      const res = await fetch(url, { method: 'POST', headers: headers(), body: JSON.stringify(body) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'request failed');
+      return data;
+    };
+
+    document.getElementById('createElection').onclick = async () => {
+      try {
+        const startAt = document.getElementById('startAt').value || new Date().toISOString();
+        const endAt = document.getElementById('endAt').value || new Date(Date.now() + 86400000).toISOString();
+        const data = await post('/church-vote/api/v1/admin/elections', {
+          title: document.getElementById('title').value || '2026 長老選舉',
+          positionType: document.getElementById('positionType').value,
+          seats: Number(document.getElementById('seats').value || 3),
+          startAt,
+          endAt,
+        });
+        document.getElementById('electionId').value = data.id;
+        print(data);
+      } catch (e) { print({ error: e.message }); }
+    };
+
+    document.getElementById('importVoters').onclick = async () => {
+      try {
+        const voters = JSON.parse(document.getElementById('votersJson').value);
+        print(await post('/church-vote/api/v1/admin/voters/import', { voters }));
+      } catch (e) { print({ error: e.message }); }
+    };
+
+    document.getElementById('addCandidate').onclick = async () => {
+      try {
+        const electionId = document.getElementById('electionId').value;
+        print(await post(`/church-vote/api/v1/admin/elections/${electionId}/candidates`, { name: document.getElementById('candidateName').value || '候選人甲', sortOrder: 1 }));
+      } catch (e) { print({ error: e.message }); }
+    };
+
+    document.getElementById('startElection').onclick = async () => {
+      try {
+        const electionId = document.getElementById('electionId').value;
+        print(await post(`/church-vote/api/v1/admin/elections/${electionId}/start`));
+      } catch (e) { print({ error: e.message }); }
+    };
+
+    document.getElementById('endElection').onclick = async () => {
+      try {
+        const electionId = document.getElementById('electionId').value;
+        print(await post(`/church-vote/api/v1/admin/elections/${electionId}/end`));
+      } catch (e) { print({ error: e.message }); }
+    };
+
+    document.getElementById('genTokens').onclick = async () => {
+      try {
+        const electionId = document.getElementById('electionId').value;
+        print(await post('/church-vote/api/v1/admin/tokens/generate', { electionId }));
+      } catch (e) { print({ error: e.message }); }
+    };
+
+    document.getElementById('fetchResults').onclick = async () => {
+      try {
+        const electionId = document.getElementById('electionId').value;
+        const res = await fetch(`/church-vote/api/v1/admin/elections/${electionId}/results`, { headers: headers() });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'request failed');
+        print(data);
+      } catch (e) { print({ error: e.message }); }
+    };
+  </script>
+</body>
+</html>

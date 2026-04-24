@@ -1,5 +1,6 @@
 import express from 'express';
 import { handleEvents, printPrompts } from '../app/index.js';
+import churchVoteRouter from './church-vote.js';
 import config from '../config/index.js';
 import { validateLineSignature } from '../middleware/index.js';
 import storage from '../storage/index.js';
@@ -12,6 +13,8 @@ app.use(express.json({
     req.rawBody = buf.toString();
   },
 }));
+app.use('/church-vote', express.static('api/public'));
+app.use('/church-vote', churchVoteRouter);
 
 app.get('/', async (req, res) => {
   if (config.APP_URL) {
