@@ -1,0 +1,285 @@
+openapi: 3.0.3
+info:
+  title: Church Voting System API
+  version: 1.0.0
+  description: API spec for anonymous church elder/deacon election with QR token login.
+servers:
+  - url: https://vote.example.org/api
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Election:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        positionType: { type: string, enum: [elder, deacon] }
+        seats: { type: integer, minimum: 1 }
+        startAt: { type: string, format: date-time }
+        endAt: { type: string, format: date-time }
+        status: { type: string, enum: [draft, active, ended] }
+      required: [id, title, positionType, seats, startAt, endAt, status]
+    Candidate:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        electionId: { type: string, format: uuid }
+        name: { type: string }
+        bio: { type: string }
+        avatarUrl: { type: string }
+        sortOrder: { type: integer }
+        active: { type: boolean }
+      required: [id, electionId, name, sortOrder, active]
+    VerifyTokenRequest:
+      type: object
+      properties:
+        token: { type: string, minLength: 32 }
+      required: [token]
+    VerifyTokenResponse:
+      type: object
+      properties:
+        sessionToken: { type: string }
+        election:
+          $ref: '#/components/schemas/Election'
+        candidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/Candidate'
+      required: [sessionToken, election, candidates]
+    SubmitBallotRequest:
+      type: object
+      properties:
+        sessionToken: { type: string }
+        selectedCandidateIds:
+          type: array
+          minItems: 0
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+      required: [sessionToken, selectedCandidateIds]
+    SubmitBallotResponse:
+      type: object
+      properties:
+        ballotId: { type: string, format: uuid }
+        submittedAt: { type: string, format: date-time }
+      required: [ballotId, submittedAt]
+    CreateElectionRequest:
+      type: object
+      properties:
+        title: { type: string }
+        positionType: { type: string, enum: [elder, deacon] }
+        seats: { type: integer, minimum: 1 }
+        startAt: { type: string, format: date-time }
+        endAt: { type: string, format: date-time }
+      required: [title, positionType, seats, startAt, endAt]
+    UpsertCandidateRequest:
+      type: object
+      properties:
+        name: { type: string }
+        bio: { type: string }
+        avatarUrl: { type: string }
+        sortOrder: { type: integer }
+        active: { type: boolean }
+      required: [name, sortOrder]
+    ImportVotersRequest:
+      type: object
+      properties:
+        voters:
+          type: array
+          items:
+            type: object
+            properties:
+              memberNo: { type: string }
+              name: { type: string }
+              phone: { type: string }
+              email: { type: string, format: email }
+            required: [memberNo, name]
+      required: [voters]
+    GenerateTokensRequest:
+      type: object
+      properties:
+        electionId: { type: string, format: uuid }
+      required: [electionId]
+    TokenStatus:
+      type: object
+      properties:
+        tokenId: { type: string, format: uuid }
+        voterId: { type: string, format: uuid }
+        electionId: { type: string, format: uuid }
+        issuedAt: { type: string, format: date-time }
+        usedAt: { type: string, format: date-time, nullable: true }
+        revokedAt: { type: string, format: date-time, nullable: true }
+      required: [tokenId, voterId, electionId, issuedAt]
+    ElectionResult:
+      type: object
+      properties:
+        electionId: { type: string, format: uuid }
+        totalBallots: { type: integer }
+        candidateTallies:
+          type: array
+          items:
+            type: object
+            properties:
+              candidateId: { type: string, format: uuid }
+              candidateName: { type: string }
+              votes: { type: integer }
+            required: [candidateId, candidateName, votes]
+      required: [electionId, totalBallots, candidateTallies]
+paths:
+  /v1/voter/verify-token:
+    post:
+      summary: Verify QR one-time token and open voter session.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VerifyTokenRequest' }
+      responses:
+        '200':
+          description: Valid token.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VerifyTokenResponse' }
+        '400': { description: Invalid/expired/used token }
+  /v1/voter/ballots:
+    post:
+      summary: Submit anonymous ballot for one election.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SubmitBallotRequest' }
+      responses:
+        '201':
+          description: Ballot submitted.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SubmitBallotResponse' }
+        '400': { description: Over-selection or invalid candidate ids }
+  /v1/admin/elections:
+    post:
+      summary: Create election.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateElectionRequest' }
+      responses:
+        '201':
+          description: Created election.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Election' }
+    get:
+      summary: List elections.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Election' }
+  /v1/admin/elections/{electionId}/candidates:
+    post:
+      summary: Add candidate.
+      parameters:
+        - in: path
+          name: electionId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpsertCandidateRequest' }
+      responses:
+        '201':
+          description: Created candidate.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Candidate' }
+    get:
+      summary: List candidates for election.
+      parameters:
+        - in: path
+          name: electionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Candidate' }
+  /v1/admin/voters: 
+    post:
+      summary: Bulk import voters.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ImportVotersRequest' }
+      responses:
+        '200': { description: Imported }
+  /v1/admin/tokens/generate:
+    post:
+      summary: Generate one-time tokens for an election.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/GenerateTokensRequest' }
+      responses:
+        '200':
+          description: Token generated and queued for QR export.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/TokenStatus' }
+  /v1/admin/elections/{electionId}/start:
+    post:
+      summary: Force start election now.
+      parameters:
+        - in: path
+          name: electionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Started }
+  /v1/admin/elections/{electionId}/end:
+    post:
+      summary: Force end election now.
+      parameters:
+        - in: path
+          name: electionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Ended }
+  /v1/admin/elections/{electionId}/results:
+    get:
+      summary: Read election tally result.
+      parameters:
+        - in: path
+          name: electionId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Tally report.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ElectionResult' }
