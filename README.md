@@ -63,6 +63,12 @@ npm run dev
 
 `CHURCH_VOTE_ADMIN_MFA_SECRET=your-mfa-secret`
 
+### Move module to another repo
+
+If you want to migrate this church-vote module into another repository, use:
+
+`bash scripts/move-church-vote-to-codex.sh https://github.com/Roy5168/Codex.git /tmp/Codex`
+
 ## Credits
 
 - [jayer95](https://github.com/jayer95) - Debugging and testing
