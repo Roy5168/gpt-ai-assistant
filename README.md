@@ -29,6 +29,8 @@ This repo now includes a church voting system baseline (frontend + backend API) 
 - admin setup for elections/candidates/voters/token generation
 - start/end voting, result tally, and audit logs
 - file-based persistent storage (survives process restarts)
+- optional PostgreSQL state backend (`CHURCH_VOTE_DB_URL`, requires `pg` package)
+- admin login + MFA API (`/church-vote/api/v1/admin/auth/login`)
 
 ### Quick start
 
@@ -52,6 +54,14 @@ npm run dev
 `CHURCH_VOTE_ADMIN_KEY=your-secret-key`
 
 `CHURCH_VOTE_DATA_FILE=storage/church-vote.json`
+
+`CHURCH_VOTE_DB_URL=postgres://user:pass@host:5432/dbname`
+
+`CHURCH_VOTE_ADMIN_USERNAME=admin`
+
+`CHURCH_VOTE_ADMIN_PASSWORD=ChangeMe123!`
+
+`CHURCH_VOTE_ADMIN_MFA_SECRET=your-mfa-secret`
 
 ## Credits
 

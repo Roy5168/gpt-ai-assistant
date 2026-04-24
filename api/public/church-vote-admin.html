@@ -8,8 +8,13 @@
 </head>
 <body>
   <h1>教會投票後台</h1>
-  <p>請先輸入管理金鑰（預設：church-admin-change-me，上線請改環境變數）。</p>
-  <input id="adminKey" placeholder="x-admin-key" value="church-admin-change-me" />
+  <p>正式版：可用帳密 + MFA 登入（或沿用 x-admin-key 相容模式）。</p>
+  <input id="adminUser" placeholder="帳號" value="admin" />
+  <input id="adminPassword" placeholder="密碼" value="ChangeMe123!" />
+  <input id="adminMfaCode" placeholder="MFA 6碼" />
+  <button id="adminLogin">登入後台</button>
+  <hr />
+  <input id="adminKey" placeholder="x-admin-key（相容模式）" value="church-admin-change-me" />
 
   <section>
     <h2>1) 建立選舉</h2>
@@ -45,7 +50,14 @@
 
   <script>
     const output = document.getElementById('output');
-    const headers = () => ({ 'Content-Type': 'application/json', 'x-admin-key': document.getElementById('adminKey').value });
+    let accessToken = '';
+
+    const headers = () => {
+      if (accessToken) {
+        return { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` };
+      }
+      return { 'Content-Type': 'application/json', 'x-admin-key': document.getElementById('adminKey').value };
+    };
     const print = (data) => output.textContent = JSON.stringify(data, null, 2);
 
     const post = async (url, body = {}) => {
@@ -53,6 +65,23 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'request failed');
       return data;
+    };
+
+    document.getElementById('adminLogin').onclick = async () => {
+      try {
+        const data = await fetch('/church-vote/api/v1/admin/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: document.getElementById('adminUser').value,
+            password: document.getElementById('adminPassword').value,
+            mfaCode: document.getElementById('adminMfaCode').value,
+          }),
+        }).then((r) => r.json());
+        if (!data.accessToken) throw new Error(data.message || 'login failed');
+        accessToken = data.accessToken;
+        print({ message: '登入成功', expiresInSeconds: data.expiresInSeconds });
+      } catch (e) { print({ error: e.message }); }
     };
 
     document.getElementById('createElection').onclick = async () => {
