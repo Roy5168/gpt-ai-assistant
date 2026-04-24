@@ -20,6 +20,55 @@ GPT AI Assistant is an application that is implemented using the OpenAI API and 
 - <a href="https://memochou1993.github.io/gpt-ai-assistant-docs/" target="_blank">中文</a>
 - <a href="https://memochou1993.github.io/gpt-ai-assistant-docs/en" target="_blank">English</a>
 
+## Church voting system (production baseline)
+
+This repo now includes a church voting system baseline (frontend + backend API) with:
+
+- one-time token based voter login
+- anonymous ballot submission
+- admin setup for elections/candidates/voters/token generation
+- start/end voting, result tally, and audit logs
+- file-based persistent storage (survives process restarts)
+- optional PostgreSQL state backend (`CHURCH_VOTE_DB_URL`, requires `pg` package)
+- admin login + MFA API (`/church-vote/api/v1/admin/auth/login`)
+
+### Quick start
+
+1. Run server:
+
+```bash
+npm install
+npm run dev
+```
+
+2. Open admin UI:
+
+`http://localhost:3000/church-vote/admin`
+
+3. Open voter UI:
+
+`http://localhost:3000/church-vote`
+
+4. Optional env vars (recommended):
+
+`CHURCH_VOTE_ADMIN_KEY=your-secret-key`
+
+`CHURCH_VOTE_DATA_FILE=storage/church-vote.json`
+
+`CHURCH_VOTE_DB_URL=postgres://user:pass@host:5432/dbname`
+
+`CHURCH_VOTE_ADMIN_USERNAME=admin`
+
+`CHURCH_VOTE_ADMIN_PASSWORD=ChangeMe123!`
+
+`CHURCH_VOTE_ADMIN_MFA_SECRET=your-mfa-secret`
+
+### Move module to another repo
+
+If you want to migrate this church-vote module into another repository, use:
+
+`bash scripts/move-church-vote-to-codex.sh https://github.com/Roy5168/Codex.git /tmp/Codex`
+
 ## Credits
 
 - [jayer95](https://github.com/jayer95) - Debugging and testing
