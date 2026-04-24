@@ -35,7 +35,9 @@
     <button id="startElection">開始投票</button>
     <button id="endElection">結束投票</button>
     <button id="genTokens">產生 QR token</button>
+    <button id="listTokens">查看 token 狀態</button>
     <button id="fetchResults">查看結果</button>
+    <button id="fetchAuditLogs">查看稽核紀錄</button>
   </section>
 
   <h2>輸出</h2>
@@ -108,6 +110,25 @@
       try {
         const electionId = document.getElementById('electionId').value;
         const res = await fetch(`/church-vote/api/v1/admin/elections/${electionId}/results`, { headers: headers() });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'request failed');
+        print(data);
+      } catch (e) { print({ error: e.message }); }
+    };
+
+    document.getElementById('listTokens').onclick = async () => {
+      try {
+        const electionId = document.getElementById('electionId').value;
+        const res = await fetch(`/church-vote/api/v1/admin/elections/${electionId}/tokens`, { headers: headers() });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'request failed');
+        print(data);
+      } catch (e) { print({ error: e.message }); }
+    };
+
+    document.getElementById('fetchAuditLogs').onclick = async () => {
+      try {
+        const res = await fetch('/church-vote/api/v1/admin/audit-logs', { headers: headers() });
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || 'request failed');
         print(data);
