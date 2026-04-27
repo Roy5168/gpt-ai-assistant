@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>教會投票</title>
+  <style>body{font-family:sans-serif;max-width:720px;margin:20px auto;padding:0 12px} .card{border:1px solid #ddd;border-radius:8px;padding:10px;margin:8px 0} button{padding:8px 12px} #error{color:#b00020}</style>
+</head>
+<body>
+  <h1>教會線上投票</h1>
+  <p>請輸入或掃描 QR Code 帶入的 token。</p>
+  <input id="token" placeholder="vote token" style="width:100%;padding:8px"/>
+  <button id="verifyBtn">驗證並載入候選人</button>
+  <p id="error"></p>
+  <section id="electionBox" style="display:none">
+    <h2 id="electionTitle"></h2>
+    <p id="seatInfo"></p>
+    <div id="candidates"></div>
+    <button id="submitBtn">送出投票</button>
+  </section>
+
+  <script>
+    const q = new URLSearchParams(window.location.search);
+    const tokenFromUrl = q.get('voteToken') || '';
+    const tokenInput = document.getElementById('token');
+    tokenInput.value = tokenFromUrl;
+
+    let currentElection = null;
+    let currentCandidates = [];
+
+    const showError = (msg='') => document.getElementById('error').textContent = msg;
+
+    document.getElementById('verifyBtn').onclick = async () => {
+      showError('');
+      const token = tokenInput.value.trim();
+      if (!token) return showError('請輸入 token');
+
+      const res = await fetch('/church-vote/api/v1/voter/verify-token', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+      const data = await res.json();
+      if (!res.ok) return showError(data.message || 'token 驗證失敗');
+
+      currentElection = data.election;
+      currentCandidates = data.candidates;
+      document.getElementById('electionBox').style.display = 'block';
+      document.getElementById('electionTitle').textContent = data.election.title;
+      document.getElementById('seatInfo').textContent = `應選名額：${data.election.seats}（可少選，不可超選）`;
+
+      const box = document.getElementById('candidates');
+      box.innerHTML = '';
+      data.candidates.forEach((c) => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `<label><input type="checkbox" value="${c.id}"> ${c.name}</label><div>${c.bio || ''}</div>`;
+        box.appendChild(div);
+      });
+    };
+
+    document.getElementById('submitBtn').onclick = async () => {
+      showError('');
+      const selected = [...document.querySelectorAll('#candidates input:checked')].map((i) => i.value);
+      if (!currentElection) return showError('請先驗證 token');
+      if (selected.length > currentElection.seats) return showError('超過應選名額');
+
+      const confirmed = window.confirm(`你選了 ${selected.length} 位，送出後不可修改，確定送出嗎？`);
+      if (!confirmed) return;
+
+      const res = await fetch('/church-vote/api/v1/voter/ballots', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voteSessionToken: tokenInput.value.trim(), selectedCandidateIds: selected })
+      });
+      const data = await res.json();
+      if (!res.ok) return showError(data.message || '送出失敗');
+
+      alert(`投票成功！時間：${data.submittedAt}`);
+      location.reload();
+    };
+  </script>
+</body>
+</html>
